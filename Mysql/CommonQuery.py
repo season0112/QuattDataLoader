@@ -4,9 +4,6 @@ def test2Query(cursor):
     #cursor.execute("SELECT COUNT(DISTINCT installationId) FROM energyConsumption")
     #cursor.execute("SELECT MONTH('2009-05-18')")
     cursor.execute("SELECT MONTH('2024-07-12 13:49:29')")
-    fields = [field_md[0] for field_md in cursor.description]
-    result = [dict(zip(fields,row)) for row in cursor.fetchall()]
-    print(result)
   
 def testQuery(cursor):
 
@@ -22,7 +19,7 @@ def testQuery(cursor):
     # "installationId": continuous 1-8352, then 10041-48326 with many gaps. Distinct count: 9574   
     # "menderId": Most are "None", 19 out of 9625 have menderId. A example, CIC id:CIC-1106aaaa-a7ca-54cb-8da4-16eca3794e68, menderId:4d38b6fb-5663-4eff-982a-ef0472640180, installationId:4049 
 
-    #cursor.execute("SELECT * FROM cic;") # [9625 rows x 9 columns], Runing Time: 1.3 s
+    cursor.execute("SELECT * FROM cic;") # [9625 rows x 9 columns], Runing Time: 1.3 s
     #cursor.execute("SELECT COUNT(DISTINCT installationId) FROM cic;")
 
     ## energyConsumption Table: 47484777 rows x 10 columns (Update on 16.07.2024)
@@ -44,26 +41,6 @@ def testQuery(cursor):
     #cursor.execute("SELECT * FROM energyConsumption LIMIT 200;")
 
 
-    fields = [field_md[0] for field_md in cursor.description]
-    print(fields)
-    print("\n")
-
-    result = [dict(zip(fields,row)) for row in cursor.fetchall()]
-    print(result)
-    print("\n")
-    df = pd.DataFrame(result)
-    #pd.set_option('display.max_colwidth', None) 
-    print(df) 
-
-
-    '''
-    print("\n")
-    print(df['menderId'][2])
-    print( any(df['menderId']!=None) )
-    #print(sorted(df['installationId']))
-    '''
-
-
 def ListDataBases(cursor):
     # DataBases: 'information_schema', 'mysql', 'performance_schema', 'quatt_production', 'sys' 
     cursor.execute("SHOW DATABASES")
@@ -74,7 +51,7 @@ def ListDataBases(cursor):
 
 
 def ListTables(cursor):
-    # Tables in quatt_production: 
+    # 18 Tables in 'quatt_production': 
     # '_prisma_migrations','cic','cicCommissioning','cicRegistration','cicState',
     # 'energyConsumption','heatPump','heatPumpCommissioning','installation',
     # 'installationNote','installationTariff','installer','settingsUpdate','user',
@@ -84,9 +61,6 @@ def ListTables(cursor):
     for x in cursor:
         print(x)
     print("\n")
-
-
-
 
 
 def MartijnCO2Calculation(cursor):
@@ -99,10 +73,10 @@ def MartijnCO2Calculation(cursor):
         SUM(hpElectric - hpElectric_prev_day) AS Total_hpElectric_diff,
         SUM(boilerHeat - boilerHeat_prev_day) AS Total_boilerHeat_diff, -- Added total boilerHeat difference
         (SUM(hpHeat - hpHeat_prev_day) / NULLIF(SUM(hpElectric - hpElectric_prev_day), 0)) AS Total_COP,
-        (SUM(hpHeat - hpHeat_prev_day) / 8792.5) AS Savings_Gas,
-        ((SUM(hpHeat - hpHeat_prev_day) / 8792.5) * 1.78) AS CO2_Gas_Saved,
-        ((SUM(hpElectric - hpElectric_prev_day) / 1000) * 0.22) AS CO2_Electricity,
-        (((SUM(hpHeat - hpHeat_prev_day) / 8792.5) * 1.78) - ((SUM(hpElectric - hpElectric_prev_day) / 1000) * 0.22)) AS Savings_CO2
+        (SUM(hpHeat - hpHeat_prev_day) / 8792.5) AS Savings_Gas,    -- (m^3)
+        ((SUM(hpHeat - hpHeat_prev_day) / 8792.5) * 1.78) AS CO2_Gas_Saved,  -- (kg)
+        ((SUM(hpElectric - hpElectric_prev_day) / 1000) * 0.22) AS CO2_Electricity,  -- (kg)
+        (((SUM(hpHeat - hpHeat_prev_day) / 8792.5) * 1.78) - ((SUM(hpElectric - hpElectric_prev_day) / 1000) * 0.22)) AS Savings_CO2 -- (kg)
     FROM (
         SELECT 
             timestamp,
@@ -126,20 +100,6 @@ def MartijnCO2Calculation(cursor):
         Date
     ORDER BY Date;
     """) # Running time: 7.3 mins
-
-
-    fields = [field_md[0] for field_md in cursor.description]
-    print(fields)
-    print("\n")
-
-    result = [dict(zip(fields,row)) for row in cursor.fetchall()]
-    #print(result)
-    #print("\n")
-    df = pd.DataFrame(result)
-    #pd.set_option('display.max_colwidth', None)
-    print(df)
-
-
 
 
 

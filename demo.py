@@ -31,19 +31,26 @@ def main():
     # Load Data
     if args.subpackage == 's3':
         s3_instance = S3_loader.Boto3()
+        # Example action:
         bucket = s3_instance.s3_resource.Bucket('quatt-iot-stats-production')
         folder_name = 'dt/CIC-2107ad0d-8e9a-517c-8d37-7604ae9cd93f/2024/03/25/'
         s3_instance.Print_objects_in_bucket(bucket, folder_name)
     elif args.subpackage == 'clickhouse':
         clickhouse_loader.connect_clickhouse(args)
     elif args.subpackage == 'mysql':
-        mysql_loader.connect_mysql(args)
+        extractedData = mysql_loader.connect_mysql(args)
+
+    # Analysis
+    print(extractedData)
+
+    # Save
+    extractedData.to_csv("extractedData_" + str(args.subpackage) + ".csv", index=False )
 
 
 if __name__ == "__main__":
     time_start=time.time()
     main()
     time_end=time.time()
-    print('time cost', (time_end-time_start)/60,'mins')
+    print('Running Time: ', (time_end-time_start)/60,'mins')
 
 

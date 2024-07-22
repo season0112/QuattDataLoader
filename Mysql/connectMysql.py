@@ -2,6 +2,7 @@ import mysql.connector
 from mysql.connector import Error
 from .loadMysqlCredentials import mysql_host, mysql_user, mysql_password, mysql_port, mysql_database
 from . import CommonQuery
+import pandas as pd
 
 def connect_mysql(arguments):
 
@@ -19,19 +20,28 @@ def connect_mysql(arguments):
 
             #CommonQuery.ListDataBases(cursor)
             #CommonQuery.ListTables(cursor)
-            #CommonQuery.MartijnCO2Calculation(cursor) 
+            CommonQuery.MartijnCO2Calculation(cursor) 
             #CommonQuery.testQuery(cursor)
-            CommonQuery.test2Query(cursor)
+            #CommonQuery.test2Query(cursor)
+
+            fields = [field_md[0] for field_md in cursor.description]
+            result = [dict(zip(fields,row)) for row in cursor.fetchall()]
+            df = pd.DataFrame(result)
+
+            #print(fields)
+            #print("\n")
+            #pd.set_option('display.max_colwidth', None)
+            #print(df)            
+
+            return df
 
     except Error as e:
             print("error out.")
-    '''
     finally:
         if connection.is_connected():
             cursor.close()
             connection.close()
             print("MySQL connection is closed")
-    '''
 
 
 
